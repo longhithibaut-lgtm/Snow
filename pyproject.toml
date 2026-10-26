@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snow"
+version = "0.1.0"
+description = "Rule-based trading bots on Alpaca (US stocks and crypto) with an optional LLM veto"
+requires-python = ">=3.11"
+dependencies = [
+    "alpaca-py>=0.43",
+    "yfinance>=1.0",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+llm = ["tradingagents @ git+https://github.com/TauricResearch/TradingAgents@v0.7.0"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+snow = "snow.cli:main"
+
+[tool.setuptools]
+packages = ["snow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,51 @@
+# Copie ce fichier en config.yaml et adapte-le.
+# Symboles au format Alpaca : AAPL pour une action US, BTC/USD pour une crypto.
+# Un symbole n'appartient qu'à un seul bot ; la somme des capital_pct ne dépasse pas 1.
+
+bots:
+  # Suivi de tendance sur la crypto : long tant que la moyenne 20 jours est au-dessus de la 100 jours.
+  - name: crypto-trend
+    symbols: [BTC/USD, ETH/USD]
+    timeframe: 1Day
+    capital_pct: 0.5            # moitié du compte
+    strategy:
+      name: sma_cross
+      params: {fast: 20, slow: 100}
+    risk:
+      max_position_pct: 0.5     # au plus 50 % du budget du bot par crypto
+      vol_target_annual: 0.40   # réduit la position quand la volatilité dépasse 40 %/an
+      daily_loss_limit_pct: 0.05
+      rebalance_threshold_pct: 0.10   # évite de payer des frais pour de petits ajustements
+    llm_filter:
+      enabled: false
+
+  # Retour à la moyenne sur des ETF US : achète les replis de court terme (RSI 2 jours bas) au-dessus de la moyenne 200 jours.
+  - name: us-dips
+    symbols: [SPY, QQQ, IWM]
+    timeframe: 1Day
+    capital_pct: 0.5
+    strategy:
+      name: rsi_reversion
+      params: {period: 2, entry: 10, exit: 70, trend: 200}   # RSI 2 jours (Connors)
+    risk:
+      max_position_pct: 0.34
+      daily_loss_limit_pct: 0.03
+    # Veto LLM (TradingAgents) sur les nouvelles entrées : pip install -e ".[llm]"
+    # puis enabled: true. Environ quelques dizaines d'appels LLM par entrée.
+    llm_filter:
+      enabled: false
+      veto_ratings: [Sell, Underweight]
+      on_error: block
+      tradingagents_config:
+        llm_provider: anthropic
+        deep_think_llm: claude-opus-5-5
+        quick_think_llm: claude-sonnet-5
+
+backtest:
+  initial_cash: 10000
+  fee_pct_stock: 0.0       # Alpaca : pas de commission sur les actions US
+  fee_pct_crypto: 0.0025   # Alpaca crypto : 0,15 à 0,25 % par ordre
+  slippage_pct: 0.0005
+
+state_dir: state
+log_dir: logs
